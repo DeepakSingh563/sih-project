@@ -314,67 +314,106 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
         </motion.button>
       </div>
 
-      {/* Suggested Routes List */}
+      {/* Suggested Routes List & AI Recommendation Banner */}
       <AnimatePresence>
         {routePlan && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="border-t border-slate-100 bg-slate-50/50 p-3 space-y-2"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            transition={{ duration: 0.25 }}
+            className="border-t border-slate-200 bg-slate-50/70 p-3.5 space-y-3 max-h-[52vh] overflow-y-auto"
           >
-            <div className="flex items-center justify-between">
+            {/* AI Top Recommendation Summary Banner */}
+            <div className="p-3 rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200/90 shadow-sm">
+              <div className="flex items-center gap-1.5 text-xs font-extrabold text-emerald-900 mb-1">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>AI Recommendation: {routePlan.tradeoff || 'Optimal Safe Route'}</span>
+              </div>
+              <p className="text-[11px] text-emerald-800/90 leading-snug">
+                {routePlan.reason || 'Safest corridor with high nighttime visibility, CCTV and verified PCR checkpoints.'}
+              </p>
+            </div>
+
+            {/* Candidate Corridors List Header */}
+            <div className="flex items-center justify-between pt-0.5">
               <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider font-mono">
-                {routePlan.options.length} Candidate Corridors
+                {routePlan.options.length} Evaluated Corridors
               </span>
-              <span className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1 font-mono">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                AI Scored
+              <span className="text-[10px] text-slate-400 font-mono">
+                Click any path to select on map
               </span>
             </div>
 
-            {routePlan.options.map((opt, idx) => {
-              const isSelected = selectedRouteIndex === opt.routeIndex;
-              const isRecommended = idx === routePlan.recommendedIndex;
-              const distKm = (opt.distanceMeters / 1000).toFixed(1);
-              const durMin = Math.round(opt.durationSeconds / 60);
+            {/* Route Cards */}
+            <div className="space-y-2">
+              {routePlan.options.map((opt, idx) => {
+                const isSelected = selectedRouteIndex === opt.routeIndex;
+                const isRecommended = idx === routePlan.recommendedIndex;
+                const distKm = (opt.distanceMeters / 1000).toFixed(1);
+                const durMin = Math.round(opt.durationSeconds / 60);
 
-              return (
-                <motion.div
-                  key={`route-opt-${opt.routeIndex}`}
-                  onClick={() => setSelectedRouteIndex(opt.routeIndex)}
-                  whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.99 }}
-                  className={`p-2.5 rounded-xl border transition-all cursor-pointer ${
-                    isSelected
-                      ? 'bg-white border-blue-500 ring-2 ring-blue-500/20 shadow-sm'
-                      : 'bg-white/80 border-slate-200 hover:border-slate-300'
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-bold text-xs text-slate-800 truncate">
-                          {opt.name || `Route ${idx + 1}`}
-                        </span>
-                        {isRecommended && (
-                          <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold font-mono">
-                            SAFEST
+                return (
+                  <motion.div
+                    key={`route-opt-${opt.routeIndex}`}
+                    onClick={() => setSelectedRouteIndex(opt.routeIndex)}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                    className={`p-3 rounded-xl border transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-white border-blue-500 ring-2 ring-blue-500/20 shadow-md'
+                        : 'bg-white/90 border-slate-200 hover:border-slate-300 hover:bg-white'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <div className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-blue-600 bg-blue-600' : 'border-slate-300 bg-white'}`}>
+                            {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                          </div>
+                          <span className="font-bold text-xs text-slate-900 truncate">
+                            {opt.name || `Route ${idx + 1}`}
                           </span>
+                          {isRecommended && (
+                            <span className="px-1.5 py-0.2 rounded-md bg-emerald-100 text-emerald-800 text-[9.5px] font-extrabold font-mono shrink-0">
+                              RECOMMENDED
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-3 mt-1.5 text-xs text-slate-600 font-mono">
+                          <span className="font-extrabold text-slate-900 text-sm">{durMin} min</span>
+                          <span>{distKm} km</span>
+                        </div>
+
+                        {/* POI indicators if available */}
+                        {opt.pois && opt.pois.length > 0 && (
+                          <div className="flex items-center gap-2 mt-2 pt-2 border-t border-slate-100 text-[10px] text-slate-500">
+                            <span className="flex items-center gap-1 font-medium text-slate-600">
+                              <span>⛽ Fuel</span>
+                              <span>•</span>
+                              <span>🏥 Hospital</span>
+                              {opt.pois.some((p) => p.type === 'toll_plaza') && (
+                                <>
+                                  <span>•</span>
+                                  <span>🛑 Toll</span>
+                                </>
+                              )}
+                              <span>•</span>
+                              <span>🚓 Police</span>
+                            </span>
+                          </div>
                         )}
                       </div>
 
-                      <div className="flex items-center gap-3 mt-1 text-xs text-slate-500 font-mono">
-                        <span className="font-bold text-slate-800 text-sm">{durMin} min</span>
-                        <span>{distKm} km</span>
+                      <div className="shrink-0 mt-0.5">
+                        <SafetyBadge score={opt.safety.score} level={opt.safety.level} />
                       </div>
                     </div>
-
-                    <SafetyBadge score={opt.safety.score} level={opt.safety.level} />
-                  </div>
-                </motion.div>
-              );
-            })}
+                  </motion.div>
+                );
+              })}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

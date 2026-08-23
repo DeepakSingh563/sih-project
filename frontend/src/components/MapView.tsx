@@ -159,11 +159,13 @@ const createPoiSymbolIcon = (type: 'petrol_pump' | 'toll_plaza' | 'hospital' | '
 interface MapControllerProps {
   origin: LatLng | null;
   destination: LatLng | null;
+  routeOptions?: RouteOption[];
+  selectedRouteIndex?: number;
   userNavPos: LatLng | null;
   onMapClick?: (latlng: LatLng) => void;
 }
 
-const MapController: React.FC<MapControllerProps> = ({ origin, destination, userNavPos, onMapClick }) => {
+const MapController: React.FC<MapControllerProps> = ({ origin, destination, routeOptions, selectedRouteIndex, userNavPos, onMapClick }) => {
   const map = useMap();
 
   useMapEvents({
@@ -175,6 +177,14 @@ const MapController: React.FC<MapControllerProps> = ({ origin, destination, user
   useEffect(() => {
     if (userNavPos) {
       map.setView([userNavPos.lat, userNavPos.lng], 16, { animate: true });
+    } else if (routeOptions && routeOptions.length > 0) {
+      const activeOpt = routeOptions.find((r) => r.routeIndex === selectedRouteIndex) || routeOptions[0];
+      if (activeOpt && activeOpt.geometry && activeOpt.geometry.coordinates.length > 0) {
+        const bounds = L.latLngBounds(
+          activeOpt.geometry.coordinates.map(([lng, lat]) => [lat, lng] as [number, number])
+        );
+        map.fitBounds(bounds, { padding: [100, 100], maxZoom: 15 });
+      }
     } else if (origin && destination) {
       const bounds = L.latLngBounds(
         [origin.lat, origin.lng],
@@ -182,7 +192,7 @@ const MapController: React.FC<MapControllerProps> = ({ origin, destination, user
       );
       map.fitBounds(bounds, { padding: [80, 80], maxZoom: 15 });
     }
-  }, [origin, destination, userNavPos, map]);
+  }, [origin, destination, routeOptions, selectedRouteIndex, userNavPos, map]);
 
   return null;
 };
@@ -236,6 +246,8 @@ export const MapView: React.FC<MapViewProps> = ({
         <MapController
           origin={origin}
           destination={destination}
+          routeOptions={routeOptions}
+          selectedRouteIndex={selectedRouteIndex}
           userNavPos={userNavPos || null}
           onMapClick={onMapClick}
         />
