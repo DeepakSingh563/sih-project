@@ -15,7 +15,10 @@ import {
   Activity,
   ArrowLeft,
   ArrowRight,
-  Sparkles
+  Globe,
+  Radio,
+  Smartphone,
+  Database
 } from 'lucide-react';
 
 export type NodeStatus = 'idle' | 'running' | 'success';
@@ -23,13 +26,14 @@ export type NodeStatus = 'idle' | 'running' | 'success';
 interface WorkflowNode {
   id: string;
   name: string;
-  category: 'trigger' | 'ingestion' | 'ai_nlp' | 'math' | 'decision' | 'action';
+  category: 'source_api' | 'trigger' | 'ingestion' | 'ai_nlp' | 'math' | 'decision' | 'action';
   icon: React.ComponentType<{ className?: string }>;
   x: number;
   y: number;
   description: string;
   executionTime: number;
   color: string;
+  isSourceApi?: boolean;
 }
 
 interface Connection {
@@ -70,29 +74,68 @@ export const WorkflowPage: React.FC = () => {
     return Math.max(4.2, Math.round(Math.sqrt(dLat * dLat + dLng * dLng) * 111 * 10) / 10);
   }, [originCoords, destCoords]);
 
-  const durationMin = useMemo(() => Math.round((distanceKm / 28) * 60), [distanceKm]);
-
-  // Perfectly spaced coordinates to fit in a single 100vh non-scrolling screen
+  // Perfectly proportioned grid layout including Source APIs (Fits on 1 single page, 0 scrollbars)
   const nodes: WorkflowNode[] = useMemo(() => [
+    // Column 0: Source APIs & Data Feeds
+    {
+      id: 'api-osm',
+      name: 'OSM & Mapbox API',
+      category: 'source_api',
+      icon: Database,
+      x: 20,
+      y: 60,
+      description: 'OpenStreetMap Delhi NCR road graph',
+      executionTime: 20,
+      color: '#0284C7',
+      isSourceApi: true,
+    },
+    {
+      id: 'api-citizen',
+      name: 'Citizen Reports Stream',
+      category: 'source_api',
+      icon: Smartphone,
+      x: 20,
+      y: 210,
+      description: 'Live mobile app hazard telemetry & SOS',
+      executionTime: 15,
+      color: '#10B981',
+      isSourceApi: true,
+    },
+    {
+      id: 'api-news',
+      name: 'newsind.org & Police Feed',
+      category: 'source_api',
+      icon: Globe,
+      x: 20,
+      y: 360,
+      description: 'newsind.org, TOI Crime Desk, PCR feeds',
+      executionTime: 45,
+      color: '#F59E0B',
+      isSourceApi: true,
+    },
+
+    // Column 1: User Request Trigger
     {
       id: 'node-trigger',
       name: 'User Route Request',
       category: 'trigger',
       icon: Navigation,
-      x: 30,
-      y: 220,
+      x: 260,
+      y: 210,
       description: `${originName} ➔ ${destName} (~${distanceKm} km)`,
       executionTime: 4,
       color: '#38BDF8',
     },
+
+    // Column 2: Ingestion & Routing Engines
     {
       id: 'node-osrm',
       name: 'OSRM Route Engine',
       category: 'math',
       icon: Layers,
-      x: 270,
-      y: 70,
-      description: 'Generates dynamic candidate corridor paths',
+      x: 500,
+      y: 60,
+      description: 'Computes candidate road polylines',
       executionTime: 38,
       color: '#60A5FA',
     },
@@ -101,9 +144,9 @@ export const WorkflowPage: React.FC = () => {
       name: 'Ingestion Agent',
       category: 'ingestion',
       icon: Shield,
-      x: 270,
-      y: 220,
-      description: 'Validates NCR bounds & 300m deduplication',
+      x: 500,
+      y: 210,
+      description: 'Validates NCR bounds & deduplicates',
       executionTime: 16,
       color: '#34D399',
     },
@@ -112,19 +155,21 @@ export const WorkflowPage: React.FC = () => {
       name: 'News Analysis Agent',
       category: 'ai_nlp',
       icon: Newspaper,
-      x: 270,
-      y: 370,
+      x: 500,
+      y: 360,
       description: 'GPT-4o-mini extracts crime & safety entities',
       executionTime: 115,
       color: '#FBBF24',
     },
+
+    // Column 3: Verification & Risk Map
     {
       id: 'node-verification',
       name: 'Verification Agent',
       category: 'ai_nlp',
       icon: FileCheck2,
-      x: 520,
-      y: 320,
+      x: 740,
+      y: 310,
       description: 'Corroboration NLP confidence scoring',
       executionTime: 55,
       color: '#A78BFA',
@@ -134,9 +179,9 @@ export const WorkflowPage: React.FC = () => {
       name: 'Orchestrator Agent',
       category: 'decision',
       icon: Cpu,
-      x: 520,
-      y: 170,
-      description: 'Synchronizes live Spatial Incident Radar',
+      x: 740,
+      y: 160,
+      description: 'Aggregates Live Spatial Incident Radar',
       executionTime: 22,
       color: '#F472B6',
     },
@@ -145,20 +190,22 @@ export const WorkflowPage: React.FC = () => {
       name: 'Risk Scoring Agent',
       category: 'math',
       icon: Activity,
-      x: 770,
-      y: 90,
-      description: 'Corridor spatial decay math & threat index',
+      x: 980,
+      y: 70,
+      description: 'Corridor spatial decay math scoring',
       executionTime: 32,
       color: '#F87171',
     },
+
+    // Column 4: Optimization & Alerting
     {
       id: 'node-route-planning',
       name: 'Route Planning Agent',
       category: 'decision',
       icon: Zap,
-      x: 770,
-      y: 260,
-      description: 'Composite optimizer: 50% Safety + 30% Time + 20% Dist',
+      x: 980,
+      y: 230,
+      description: '50% Safety + 30% Time + 20% Dist',
       executionTime: 25,
       color: '#34D399',
     },
@@ -167,21 +214,31 @@ export const WorkflowPage: React.FC = () => {
       name: 'Alert Agent (In-Transit)',
       category: 'action',
       icon: AlertTriangle,
-      x: 1020,
-      y: 175,
-      description: 'Real-time 500m geofenced hazard monitor',
+      x: 1220,
+      y: 150,
+      description: 'Real-time 500m geofence monitor',
       executionTime: 12,
       color: '#FB923C',
     },
   ], [originName, destName, distanceKm]);
 
   const connections: Connection[] = useMemo(() => [
+    // Data Sources to Pipeline
+    { from: 'api-osm', to: 'node-osrm' },
+    { from: 'api-citizen', to: 'node-ingestion' },
+    { from: 'api-news', to: 'node-news' },
+
+    // Trigger to Agents
     { from: 'node-trigger', to: 'node-osrm' },
     { from: 'node-trigger', to: 'node-ingestion' },
     { from: 'node-trigger', to: 'node-news' },
+
+    // Ingestion to Verification & Orchestration
     { from: 'node-ingestion', to: 'node-verification' },
     { from: 'node-news', to: 'node-orchestrator' },
     { from: 'node-verification', to: 'node-orchestrator' },
+
+    // Risk Scoring & Route Planning
     { from: 'node-osrm', to: 'node-risk-scoring' },
     { from: 'node-orchestrator', to: 'node-risk-scoring' },
     { from: 'node-risk-scoring', to: 'node-route-planning' },
@@ -190,6 +247,9 @@ export const WorkflowPage: React.FC = () => {
   ], []);
 
   const executionSequence = [
+    'api-osm',
+    'api-citizen',
+    'api-news',
     'node-trigger',
     'node-osrm',
     'node-ingestion',
@@ -215,7 +275,7 @@ export const WorkflowPage: React.FC = () => {
       setSelectedNodeId(targetId);
 
       setNodeStatuses((prev) => ({ ...prev, [targetId]: 'running' }));
-      const delay = 600 / speedMultiplier;
+      const delay = 500 / speedMultiplier;
       await new Promise((r) => setTimeout(r, delay));
       setNodeStatuses((prev) => ({ ...prev, [targetId]: 'success' }));
     }
@@ -312,15 +372,14 @@ export const WorkflowPage: React.FC = () => {
             className="flex items-center gap-1.5 px-3.5 py-1 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-xs font-bold text-white shadow-[0_0_15px_rgba(168,85,247,0.35)] transition-all active:scale-95 disabled:opacity-50"
           >
             <Play className="w-3 h-3 fill-current" />
-            <span>{isRunning ? 'Running...' : '▶ Run Agent Pipeline'}</span>
+            <span>{isRunning ? 'Running Pipeline...' : '▶ Simulate Pipeline'}</span>
           </button>
         </div>
       </header>
 
-      {/* Main Graph Canvas — Fits 100% in One Page (Zero Scrollbars) */}
+      {/* Main Single-Page Canvas (100% Fit with 0 Scrollbars) */}
       <main className="flex-1 relative overflow-hidden bg-[#07090E] flex items-center justify-center p-2 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:24px_24px]">
-        {/* Scaling Viewport to guarantee 100% fit on any screen */}
-        <div className="relative w-[1260px] h-[520px] max-w-full max-h-full">
+        <div className="relative w-[1440px] h-[520px] max-w-full max-h-full">
           {/* Animated SVG Connections */}
           <svg className="absolute inset-0 w-full h-full pointer-events-none z-0">
             <defs>
@@ -338,15 +397,15 @@ export const WorkflowPage: React.FC = () => {
               const toNode = nodes.find((n) => n.id === conn.to)!;
               if (!fromNode || !toNode) return null;
 
-              const cardWidth = 205;
-              const cardHeight = 72;
+              const cardWidth = 195;
+              const cardHeight = 70;
 
               const startX = fromNode.x + cardWidth;
               const startY = fromNode.y + cardHeight / 2;
               const endX = toNode.x;
               const endY = toNode.y + cardHeight / 2;
 
-              const deltaX = Math.abs(endX - startX) * 0.48;
+              const deltaX = Math.abs(endX - startX) * 0.45;
               const pathD = `M ${startX} ${startY} C ${startX + deltaX} ${startY}, ${endX - deltaX} ${endY}, ${endX} ${endY}`;
 
               const isActive =
@@ -369,7 +428,7 @@ export const WorkflowPage: React.FC = () => {
                     <circle r="4" fill="#A855F7" filter="url(#glow-wire)">
                       <animateMotion
                         path={pathD}
-                        dur={`${1.2 / speedMultiplier}s`}
+                        dur={`${1.1 / speedMultiplier}s`}
                         repeatCount="indefinite"
                       />
                     </circle>
@@ -379,7 +438,7 @@ export const WorkflowPage: React.FC = () => {
             })}
           </svg>
 
-          {/* Compact, Ultra-Clean Node Cards */}
+          {/* Node Cards */}
           {nodes.map((node) => {
             const status = nodeStatuses[node.id] || 'idle';
             const isSelected = selectedNodeId === node.id;
@@ -390,9 +449,11 @@ export const WorkflowPage: React.FC = () => {
                 key={node.id}
                 onClick={() => setSelectedNodeId(node.id)}
                 style={{ left: `${node.x}px`, top: `${node.y}px` }}
-                className={`absolute w-[205px] h-[74px] rounded-xl border transition-all duration-200 cursor-pointer backdrop-blur-xl z-10 flex flex-col justify-between p-2.5 ${
-                  isSelected
-                    ? 'border-purple-400 bg-[#111622] ring-2 ring-purple-500/30 shadow-[0_6px_24px_rgba(168,85,247,0.25)] scale-[1.03]'
+                className={`absolute w-[195px] h-[70px] rounded-xl border transition-all duration-200 cursor-pointer backdrop-blur-xl z-10 flex flex-col justify-between p-2.5 ${
+                  node.isSourceApi
+                    ? 'border-cyan-500/30 bg-[#0A1220]/90 hover:border-cyan-400/60'
+                    : isSelected
+                    ? 'border-purple-400 bg-[#111622] ring-2 ring-purple-500/30 shadow-[0_6px_20px_rgba(168,85,247,0.25)] scale-[1.02]'
                     : 'border-white/[0.08] bg-[#0E131D]/95 hover:border-white/[0.2] hover:bg-[#131A28]'
                 }`}
               >
@@ -405,7 +466,7 @@ export const WorkflowPage: React.FC = () => {
                     >
                       <Icon className="w-3 h-3" />
                     </div>
-                    <span className="font-bold text-[11px] text-white tracking-tight truncate">
+                    <span className="font-bold text-[10.5px] text-white tracking-tight truncate">
                       {node.name}
                     </span>
                   </div>
@@ -421,19 +482,20 @@ export const WorkflowPage: React.FC = () => {
                   )}
                 </div>
 
-                {/* Bottom Row: Description + Latency */}
-                <div className="flex items-center justify-between text-[10px] text-slate-400 gap-1 mt-1">
+                {/* Bottom Row: Description + Tag */}
+                <div className="flex items-center justify-between text-[9.5px] text-slate-400 gap-1 mt-1">
                   <span className="truncate flex-1 font-sans text-slate-300">
                     {node.description}
                   </span>
                   <span className="font-mono text-[9px] text-slate-500 shrink-0">
-                    ~{node.executionTime}ms
+                    {node.isSourceApi ? 'API Feed' : `~${node.executionTime}ms`}
                   </span>
                 </div>
 
-                {/* Left Input Port */}
-                <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-[#07090E] border-2 border-slate-500" />
-                {/* Right Output Port */}
+                {/* Ports */}
+                {!node.isSourceApi && (
+                  <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-[#07090E] border-2 border-slate-500" />
+                )}
                 <div
                   className="absolute -right-1 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-[#07090E] border-2"
                   style={{ borderColor: node.color }}
