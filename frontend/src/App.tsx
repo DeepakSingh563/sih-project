@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { LatLng, RoutePlanResponse, Incident, CommunityReport, NewsArticle, AIAgentLog, SeverityLevel } from './types';
 import { api, checkBackendHealth } from './lib/api';
 import { INITIAL_INCIDENTS, INITIAL_REPORTS, INITIAL_NEWS, INITIAL_AGENT_LOGS } from './lib/mockData';
+import { Navbar } from './components/Navbar';
 import { MapView } from './components/MapView';
 import { RoutePlanner } from './components/RoutePlanner';
 import { NavigationSim } from './components/NavigationSim';
@@ -13,12 +14,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { gsap } from 'gsap';
 import {
   AlertOctagon,
-  Plus,
-  Newspaper,
-  Cpu,
   Crosshair,
-  Sparkles,
-  ExternalLink,
 } from 'lucide-react';
 
 export function App() {
@@ -43,50 +39,18 @@ export function App() {
   const [incidentFilter, setIncidentFilter] = useState<SeverityLevel | 'all'>('all');
 
   const sosButtonRef = useRef<HTMLButtonElement>(null);
-  const topBarRef = useRef<HTMLDivElement>(null);
-
-  // GSAP entrance animations on mount
-  useEffect(() => {
-    if (topBarRef.current) {
-      gsap.from(topBarRef.current.children, {
-        y: -20,
-        opacity: 0,
-        duration: 0.5,
-        stagger: 0.08,
-        ease: 'power3.out',
-        delay: 0.2,
-      });
-    }
-    if (sosButtonRef.current) {
-      gsap.from(sosButtonRef.current, {
-        scale: 0,
-        opacity: 0,
-        duration: 0.6,
-        ease: 'back.out(2.0)',
-        delay: 0.55,
-      });
-    }
-  }, []);
-
-  // GSAP pulse on SOS click
-  const handleSOSClick = () => {
-    if (sosButtonRef.current) {
-      gsap.timeline()
-        .to(sosButtonRef.current, { scale: 0.88, duration: 0.1, ease: 'power2.in' })
-        .to(sosButtonRef.current, { scale: 1.12, duration: 0.18, ease: 'back.out(3)' })
-        .to(sosButtonRef.current, { scale: 1, duration: 0.12, ease: 'power2.out' });
-    }
-    setSosModalOpen(true);
-  };
 
   useEffect(() => {
     async function initData() {
-      const isOnline = await checkBackendHealth();
-      setBackendOnline(isOnline);
+      const isUp = await checkBackendHealth();
+      setBackendOnline(isUp);
+
       const incList = await api.getIncidents();
       setIncidents(incList);
+
       const repList = await api.getReports();
       setReports(repList);
+
       const newsList = await api.getNews();
       setNewsArticles(newsList);
     }
@@ -127,14 +91,26 @@ export function App() {
       navigator.geolocation.getCurrentPosition(
         (pos) => setOrigin({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
         (err) => console.warn('Geolocation error:', err),
-        { enableHighAccuracy: true, timeout: 5000 }
+        { enableHighAccuracy: true }
       );
     }
   };
 
-  const handleStartNavigation = () => setIsNavigating(true);
-  const handleExitNavigation = () => { setIsNavigating(false); setUserNavPos(null); };
-  const handleTriggerReroute = () => { if (selectedRouteIndex === 1) setSelectedRouteIndex(0); };
+  const handleStartNavigation = () => {
+    if (!routePlan || !routePlan.options[selectedRouteIndex]) return;
+    setIsNavigating(true);
+  };
+
+  const handleExitNavigation = () => {
+    setIsNavigating(false);
+    setUserNavPos(null);
+  };
+
+  const handleTriggerReroute = async () => {
+    if (!origin || !destination) return;
+    const plan = await api.planRoute(origin, destination);
+    setRoutePlan(plan);
+  };
 
   const handleSubmitReport = async (payload: any) => {
     const res = await api.submitReport(payload);
@@ -156,109 +132,74 @@ export function App() {
 
   const handleTriggerSOS = async (lat: number, lng: number) => api.triggerSOS(lat, lng);
   const handleCancelSOS = async (id: string) => api.cancelSOS(id);
+  const handleSOSClick = () => setSosModalOpen(true);
 
   const activeRouteOption = routePlan?.options[selectedRouteIndex] || null;
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-slate-100 font-sans">
-      {/* Fullscreen Map */}
-      <div className="absolute inset-0 z-0">
-        <MapView
-          incidents={incidents}
-          origin={origin}
-          destination={destination}
-          routeOptions={routePlan?.options}
-          selectedRouteIndex={selectedRouteIndex}
-          onSelectRoute={setSelectedRouteIndex}
-          userNavPos={userNavPos}
-          onMapClick={(latlng) => {
-            if (!origin) setOrigin(latlng);
-            else setDestination(latlng);
-          }}
-          showIncidentFilter={incidentFilter}
-          alertRadiusMeters={600}
-        />
-      </div>
+    <div className="relative w-screen h-screen overflow-hidden bg-slate-100 font-sans flex flex-col">
+      {/* Top Modern Light-Themed Navbar with Logo & Icon Buttons */}
+      <Navbar
+        onOpenWorkflow={() => window.open('/workflow', '_blank')}
+        onOpenReport={() => setReportModalOpen(true)}
+        onOpenNews={() => setNewsModalOpen(true)}
+        onOpenSOS={() => setSosModalOpen(true)}
+      />
 
-      {/* Top Floating Controls */}
-      <div className="absolute top-4 left-4 right-4 z-20 pointer-events-none flex flex-col sm:flex-row items-start justify-between gap-3">
-        {/* Directions Card */}
-        <div className="pointer-events-auto w-full sm:w-auto flex flex-col gap-3">
-          <AnimatePresence mode="wait">
-            {isNavigating && activeRouteOption ? (
-              <NavigationSim
-                key="nav-sim"
-                route={activeRouteOption}
-                incidents={incidents}
-                onUpdateNavPosition={setUserNavPos}
-                onExitNavigation={handleExitNavigation}
-                onTriggerReroute={handleTriggerReroute}
-                onOpenSOS={() => setSosModalOpen(true)}
-              />
-            ) : (
-              <RoutePlanner
-                key="route-planner"
-                origin={origin}
-                destination={destination}
-                setOrigin={setOrigin}
-                setDestination={setDestination}
-                routePlan={routePlan}
-                selectedRouteIndex={selectedRouteIndex}
-                setSelectedRouteIndex={setSelectedRouteIndex}
-                onPlanRoute={handlePlanRoute}
-                loading={planningLoading}
-                onStartNavigation={handleStartNavigation}
-                onLocateMe={handleLocateMe}
-              />
-            )}
-          </AnimatePresence>
+      {/* Main Map & Route Section */}
+      <div className="relative flex-1 w-full h-full overflow-hidden">
+        {/* Fullscreen Map */}
+        <div className="absolute inset-0 z-0">
+          <MapView
+            incidents={incidents}
+            origin={origin}
+            destination={destination}
+            routeOptions={routePlan?.options}
+            selectedRouteIndex={selectedRouteIndex}
+            onSelectRoute={setSelectedRouteIndex}
+            userNavPos={userNavPos}
+            onMapClick={(latlng) => {
+              if (!origin) setOrigin(latlng);
+              else setDestination(latlng);
+            }}
+            showIncidentFilter={incidentFilter}
+            alertRadiusMeters={600}
+          />
         </div>
 
-        {/* Top Right Floating Nav Bar (Light Theme Dock) */}
-        <motion.div
-          ref={topBarRef}
-          initial={{ opacity: 0, y: -12 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="pointer-events-auto flex items-center gap-1.5 bg-white/95 backdrop-blur-xl border border-slate-200 p-1.5 rounded-2xl shadow-google"
-        >
-          {[
-            {
-              icon: <Sparkles className="w-4 h-4 text-purple-600" />,
-              label: 'n8n Workflow ↗',
-              onClick: () => window.open('/workflow', '_blank'),
-              cls: 'bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 shadow-sm font-bold',
-            },
-            {
-              icon: <Plus className="w-4 h-4 text-blue-600" />,
-              label: 'Report Hazard',
-              onClick: () => setReportModalOpen(true),
-              cls: 'bg-slate-50 hover:bg-slate-100 text-slate-700 hover:text-slate-900 border border-slate-200',
-            },
-            {
-              icon: <Newspaper className="w-4 h-4 text-amber-600" />,
-              label: 'Crime News',
-              onClick: () => setNewsModalOpen(true),
-              cls: 'bg-slate-50 hover:bg-slate-100 text-slate-700 hover:text-slate-900 border border-slate-200',
-            },
-            {
-              icon: <Cpu className="w-4 h-4 text-emerald-600" />,
-              label: 'AI Console',
-              onClick: () => setAdminModalOpen(true),
-              cls: 'bg-slate-50 hover:bg-slate-100 text-slate-700 hover:text-slate-900 border border-slate-200',
-            },
-          ].map((btn) => (
-            <motion.button
-              key={btn.label}
-              onClick={btn.onClick}
-              whileHover={{ scale: 1.03, y: -1 }}
-              whileTap={{ scale: 0.95 }}
-              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${btn.cls}`}
-            >
-              {btn.icon}
-              <span className="hidden sm:inline">{btn.label}</span>
-            </motion.button>
-          ))}
-        </motion.div>
+        {/* Floating Route Planner */}
+        <div className="absolute top-4 left-4 z-20 pointer-events-none w-full sm:w-auto">
+          <div className="pointer-events-auto max-w-sm sm:max-w-md">
+            <AnimatePresence mode="wait">
+              {isNavigating && activeRouteOption ? (
+                <NavigationSim
+                  key="nav-sim"
+                  route={activeRouteOption}
+                  incidents={incidents}
+                  onUpdateNavPosition={setUserNavPos}
+                  onExitNavigation={handleExitNavigation}
+                  onTriggerReroute={handleTriggerReroute}
+                  onOpenSOS={() => setSosModalOpen(true)}
+                />
+              ) : (
+                <RoutePlanner
+                  key="route-planner"
+                  origin={origin}
+                  destination={destination}
+                  setOrigin={setOrigin}
+                  setDestination={setDestination}
+                  routePlan={routePlan}
+                  selectedRouteIndex={selectedRouteIndex}
+                  setSelectedRouteIndex={setSelectedRouteIndex}
+                  onPlanRoute={handlePlanRoute}
+                  loading={planningLoading}
+                  onStartNavigation={handleStartNavigation}
+                  onLocateMe={handleLocateMe}
+                />
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
       </div>
 
       {/* GPS Locate Floating Button */}
