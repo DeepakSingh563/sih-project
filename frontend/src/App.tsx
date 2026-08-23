@@ -106,6 +106,15 @@ export function App() {
       const plan = await api.planRoute(origin, destination);
       setRoutePlan(plan);
       setSelectedRouteIndex(plan.recommendedIndex);
+      localStorage.setItem(
+        'safe_route_active_query',
+        JSON.stringify({
+          origin,
+          destination,
+          routePlan: plan,
+          timestamp: Date.now(),
+        })
+      );
     } catch (err) {
       console.error('Route error:', err);
     } finally {

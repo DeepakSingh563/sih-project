@@ -244,35 +244,40 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
           >
             {routePlan.options.map((option, idx) => {
               const isSelected = selectedRouteIndex === option.routeIndex;
-              const isRecommended = option.safety.score >= 75;
+              const isTopSafe = idx === 0;
               const minutes = Math.round(option.durationSeconds / 60);
               const km = (option.distanceMeters / 1000).toFixed(1);
 
               return (
                 <motion.div
-                  key={`route-card-${idx}`}
-                  initial={{ opacity: 0, x: -12 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: idx * 0.08, duration: 0.25, ease: 'easeOut' }}
+                  key={`route-card-${option.routeIndex}-${idx}`}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.05, duration: 0.2 }}
                   onClick={() => setSelectedRouteIndex(option.routeIndex)}
                   whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.99 }}
                   className={`p-3 rounded-xl border transition-all cursor-pointer ${
                     isSelected
-                      ? isRecommended
-                        ? 'bg-emerald-50/80 border-emerald-400 shadow-sm'
-                        : 'bg-blue-50/80 border-blue-400 shadow-sm'
+                      ? isTopSafe
+                        ? 'bg-emerald-50/90 border-emerald-400 ring-2 ring-emerald-400/30 shadow-sm'
+                        : 'bg-blue-50/90 border-blue-400 ring-2 ring-blue-400/30 shadow-sm'
                       : 'bg-white border-slate-200 hover:border-slate-300'
                   }`}
                 >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="flex items-baseline gap-1.5">
-                        <span className="text-base font-bold text-slate-900">{minutes} min</span>
-                        <span className="text-xs text-slate-500">({km} km)</span>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold text-slate-900">{minutes} min</span>
+                        <span className="text-xs text-slate-500 font-medium font-mono">{km} km</span>
+                        {isTopSafe && (
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                            ★ Safest
+                          </span>
+                        )}
                       </div>
-                      <div className="text-xs text-slate-600 mt-0.5">
-                        {isRecommended ? 'Safe Corridor' : 'Direct Route'}
+                      <div className="text-[11px] text-slate-600 truncate mt-0.5 font-medium">
+                        {(option as any).name || (isTopSafe ? 'Recommended Safe Corridor' : `Alternative Route ${idx + 1}`)}
                       </div>
                     </div>
                     <SafetyBadge score={option.safety.score} size="sm" />
@@ -280,20 +285,6 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
                 </motion.div>
               );
             })}
-
-            {/* Start Navigation */}
-            <motion.button
-              onClick={onStartNavigation}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.97 }}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.25 }}
-              className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md flex items-center justify-center gap-1.5 transition-colors mt-1"
-            >
-              <Play className="w-3.5 h-3.5 fill-white" />
-              <span>Start Navigation</span>
-            </motion.button>
           </motion.div>
         )}
       </AnimatePresence>
