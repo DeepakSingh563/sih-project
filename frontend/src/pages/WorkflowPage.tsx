@@ -36,9 +36,12 @@ interface WorkflowNode {
 }
 
 interface Connection {
+  id: string;
   from: string;
   to: string;
-  color?: string;
+  type: 'routing' | 'citizen' | 'news' | 'threat_db' | 'decision';
+  baseColor: string;
+  label?: string;
 }
 
 export const WorkflowPage: React.FC = () => {
@@ -74,19 +77,19 @@ export const WorkflowPage: React.FC = () => {
     return Math.max(4.2, Math.round(Math.sqrt(dLat * dLat + dLng * dLng) * 111 * 10) / 10);
   }, [originCoords, destCoords]);
 
-  // Perfectly organized 5-Tier layout matching exact SafeRoute AI architecture
+  // Clean structured 5-Tier layout with aligned horizontal bus channels
   const nodes: WorkflowNode[] = useMemo(() => [
-    // TIER 1: External Data Sources & User Trigger (x: 20)
+    // --- COL 1: SOURCES & TRIGGER (x: 25) ---
     {
       id: 'api-osm',
-      name: 'OSM Road Network API',
+      name: 'OSM Road Graph API',
       category: 'source',
       icon: Database,
-      x: 20,
-      y: 40,
-      description: 'OpenStreetMap Delhi NCR road graph',
+      x: 25,
+      y: 45,
+      description: 'OpenStreetMap Delhi NCR network',
       executionTime: 18,
-      color: '#0284C7',
+      color: '#38BDF8',
       isSource: true,
     },
     {
@@ -94,22 +97,22 @@ export const WorkflowPage: React.FC = () => {
       name: 'User Route Request',
       category: 'trigger',
       icon: Navigation,
-      x: 20,
-      y: 155,
+      x: 25,
+      y: 165,
       description: `${originName} ➔ ${destName} (~${distanceKm}km)`,
       executionTime: 4,
-      color: '#38BDF8',
+      color: '#60A5FA',
     },
     {
       id: 'api-citizen',
-      name: 'Citizen Report Stream',
+      name: 'Citizen Reports Feed',
       category: 'source',
       icon: Smartphone,
-      x: 20,
-      y: 270,
-      description: 'Community hazard submissions & SOS',
+      x: 25,
+      y: 285,
+      description: 'Live mobile crowd hazard submissions',
       executionTime: 14,
-      color: '#10B981',
+      color: '#34D399',
       isSource: true,
     },
     {
@@ -117,34 +120,34 @@ export const WorkflowPage: React.FC = () => {
       name: 'newsind.org & Police Feed',
       category: 'source',
       icon: Globe,
-      x: 20,
-      y: 385,
-      description: 'Live news RSS & PCR scanner alerts',
+      x: 25,
+      y: 405,
+      description: 'newsind.org, TOI & PCR feeds',
       executionTime: 35,
-      color: '#F59E0B',
+      color: '#FBBF24',
       isSource: true,
     },
 
-    // TIER 2: Ingestion & Trajectory Extraction (x: 270)
+    // --- COL 2: EXTRACTION & ROUTING ENGINES (x: 275) ---
     {
       id: 'node-osrm',
       name: 'OSRM Route Engine',
       category: 'math',
       icon: Layers,
-      x: 270,
-      y: 70,
-      description: 'Generates candidate road trajectories',
+      x: 275,
+      y: 75,
+      description: 'Computes candidate trajectory polylines',
       executionTime: 38,
-      color: '#60A5FA',
+      color: '#38BDF8',
     },
     {
       id: 'node-ingestion',
       name: 'Ingestion Agent',
       category: 'ingestion',
       icon: Shield,
-      x: 270,
-      y: 270,
-      description: 'Validates NCR bounds & 300m deduplication',
+      x: 275,
+      y: 285,
+      description: 'Validates NCR bounds & deduplicates',
       executionTime: 16,
       color: '#34D399',
     },
@@ -153,46 +156,46 @@ export const WorkflowPage: React.FC = () => {
       name: 'News Analysis Agent',
       category: 'ai_nlp',
       icon: Newspaper,
-      x: 270,
-      y: 385,
-      description: 'GPT-4o-mini extracts crime & hazards',
+      x: 275,
+      y: 405,
+      description: 'GPT-4o-mini extracts safety entities',
       executionTime: 115,
       color: '#FBBF24',
     },
 
-    // TIER 3: Verification & Orchestrator Spatial Hub (x: 520)
-    {
-      id: 'node-verification',
-      name: 'Verification Agent',
-      category: 'ai_nlp',
-      icon: FileCheck2,
-      x: 520,
-      y: 270,
-      description: 'Corroboration NLP confidence scoring',
-      executionTime: 55,
-      color: '#A78BFA',
-    },
+    // --- COL 3: VERIFICATION & ORCHESTRATOR HUB (x: 525) ---
     {
       id: 'node-orchestrator',
       name: 'Orchestrator Agent',
       category: 'decision',
       icon: Cpu,
-      x: 520,
-      y: 120,
-      description: 'Syncs verified data to Spatial Radar DB',
+      x: 525,
+      y: 195,
+      description: 'Maintains Live Spatial Incident Radar',
       executionTime: 24,
-      color: '#F472B6',
+      color: '#E879F9',
+    },
+    {
+      id: 'node-verification',
+      name: 'Verification Agent',
+      category: 'ai_nlp',
+      icon: FileCheck2,
+      x: 525,
+      y: 345,
+      description: 'Cross-validates evidence & confidence',
+      executionTime: 55,
+      color: '#A78BFA',
     },
 
-    // TIER 4: Spatial Scoring & Multi-Objective Optimizer (x: 770)
+    // --- COL 4: SCORING & DECISION (x: 775) ---
     {
       id: 'node-risk-scoring',
       name: 'Risk Scoring Agent',
       category: 'math',
       icon: Activity,
-      x: 770,
-      y: 70,
-      description: 'Spatial decay math along route corridors',
+      x: 775,
+      y: 75,
+      description: 'Corridor spatial decay math scoring',
       executionTime: 32,
       color: '#F87171',
     },
@@ -201,62 +204,53 @@ export const WorkflowPage: React.FC = () => {
       name: 'Route Planning Agent',
       category: 'decision',
       icon: Zap,
-      x: 770,
-      y: 230,
-      description: '50% Safety + 30% Time + 20% Distance',
+      x: 775,
+      y: 235,
+      description: '50% Safety + 30% Time + 20% Dist',
       executionTime: 25,
       color: '#34D399',
     },
 
-    // TIER 5: Active In-Transit Protection (x: 1020)
+    // --- COL 5: ACTIVE PROTECTION (x: 1025) ---
     {
       id: 'node-alert',
       name: 'Alert Agent (In-Transit)',
       category: 'action',
       icon: AlertTriangle,
-      x: 1020,
-      y: 150,
-      description: '500m geofenced hazard monitor & reroute',
+      x: 1025,
+      y: 155,
+      description: 'Real-time 500m geofence monitor',
       executionTime: 12,
       color: '#FB923C',
     },
   ], [originName, destName, distanceKm]);
 
-  // 100% Accurate Architecture Connections based on backend implementation:
+  // Structured connections with distinct semantic stream colors
   const connections: Connection[] = useMemo(() => [
-    // 1. OSM API & User Request Feed OSRM Engine
-    { from: 'api-osm', to: 'node-osrm' },
-    { from: 'node-trigger', to: 'node-osrm' },
+    // 🔵 ROUTING STREAM (Blue/Cyan: #38BDF8)
+    { id: 'c-osm-osrm', from: 'api-osm', to: 'node-osrm', type: 'routing', baseColor: '#38BDF8' },
+    { id: 'c-trig-osrm', from: 'node-trigger', to: 'node-osrm', type: 'routing', baseColor: '#60A5FA' },
+    { id: 'c-osrm-risk', from: 'node-osrm', to: 'node-risk-scoring', type: 'routing', baseColor: '#38BDF8' },
+    { id: 'c-osrm-plan', from: 'node-osrm', to: 'node-route-planning', type: 'routing', baseColor: '#38BDF8' },
 
-    // 2. Citizen Reports feed Ingestion Agent
-    { from: 'api-citizen', to: 'node-ingestion' },
+    // 🟢 CITIZEN PIPELINE (Emerald: #34D399)
+    { id: 'c-cit-ingest', from: 'api-citizen', to: 'node-ingestion', type: 'citizen', baseColor: '#34D399' },
+    { id: 'c-ingest-verif', from: 'node-ingestion', to: 'node-verification', type: 'citizen', baseColor: '#34D399' },
+    { id: 'c-verif-orch', from: 'node-verification', to: 'node-orchestrator', type: 'citizen', baseColor: '#A78BFA' },
 
-    // 3. News Feeds feed News Analysis Agent
-    { from: 'api-news', to: 'node-news' },
+    // 🟠 NEWS & MEDIA STREAM (Amber: #FBBF24)
+    { id: 'c-news-agent', from: 'api-news', to: 'node-news', type: 'news', baseColor: '#FBBF24' },
+    { id: 'c-news-orch', from: 'node-news', to: 'node-orchestrator', type: 'news', baseColor: '#FBBF24' },
 
-    // 4. Ingestion Agent feeds Verification Agent
-    { from: 'node-ingestion', to: 'node-verification' },
+    // 🟣 SPATIAL THREAT RADAR FEED (Fuchsia: #E879F9)
+    { id: 'c-orch-risk', from: 'node-orchestrator', to: 'node-risk-scoring', type: 'threat_db', baseColor: '#E879F9' },
+    { id: 'c-orch-alert', from: 'node-orchestrator', to: 'node-alert', type: 'threat_db', baseColor: '#E879F9' },
 
-    // 5. Verification Agent & News Analysis feed Orchestrator (Spatial DB)
-    { from: 'node-verification', to: 'node-orchestrator' },
-    { from: 'node-news', to: 'node-orchestrator' },
-
-    // 6. OSRM Candidate Trajectories feed Risk Scoring & Route Planner
-    { from: 'node-osrm', to: 'node-risk-scoring' },
-    { from: 'node-osrm', to: 'node-route-planning' },
-
-    // 7. Orchestrator Spatial Hazard Map feeds Risk Scoring & Alert Agent
-    { from: 'node-orchestrator', to: 'node-risk-scoring' },
-    { from: 'node-orchestrator', to: 'node-alert' },
-
-    // 8. Risk Scoring feeds Safety Scores to Route Planning Agent
-    { from: 'node-risk-scoring', to: 'node-route-planning' },
-
-    // 9. Route Planning Agent passes Recommended Corridor to Alert Agent
-    { from: 'node-route-planning', to: 'node-alert' },
+    // 🔴 MULTI-OBJECTIVE DECISION & ACTION (Green/Orange: #34D399 / #FB923C)
+    { id: 'c-risk-plan', from: 'node-risk-scoring', to: 'node-route-planning', type: 'decision', baseColor: '#F87171' },
+    { id: 'c-plan-alert', from: 'node-route-planning', to: 'node-alert', type: 'decision', baseColor: '#FB923C' },
   ], []);
 
-  // Execution sequence that reflects true pipeline flow
   const executionSequence = [
     'api-osm',
     'api-citizen',
@@ -304,7 +298,7 @@ export const WorkflowPage: React.FC = () => {
 
   return (
     <div className="w-screen h-screen bg-[#07090E] text-slate-200 flex flex-col overflow-hidden font-sans select-none">
-      {/* Top Header */}
+      {/* Sleek Minimal Header Bar */}
       <header className="h-14 px-6 border-b border-white/[0.08] bg-[#0C1017]/90 backdrop-blur-xl flex items-center justify-between z-30 shrink-0">
         <div className="flex items-center gap-3">
           <a
@@ -348,8 +342,16 @@ export const WorkflowPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Controls */}
-        <div className="flex items-center gap-2.5">
+        {/* Action Controls & Legend */}
+        <div className="flex items-center gap-3">
+          {/* Stream Legend */}
+          <div className="hidden lg:flex items-center gap-2.5 text-[10px] font-mono text-slate-400 border-r border-white/[0.08] pr-3 mr-1">
+            <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-[#38BDF8]" />Routing</span>
+            <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-[#34D399]" />Citizen</span>
+            <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-[#FBBF24]" />News AI</span>
+            <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-[#E879F9]" />Threat Radar</span>
+          </div>
+
           <div className="flex items-center bg-white/[0.04] p-0.5 rounded-lg border border-white/[0.08] text-xs font-mono">
             <button
               onClick={() => setSpeedMultiplier(1)}
@@ -388,10 +390,10 @@ export const WorkflowPage: React.FC = () => {
         </div>
       </header>
 
-      {/* Main Single-Page Canvas */}
+      {/* Main Single-Page Canvas (100% Fit with Zero Scrollbars) */}
       <main className="flex-1 relative overflow-hidden bg-[#07090E] flex items-center justify-center p-2 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:24px_24px]">
-        <div className="relative w-[1240px] h-[500px] max-w-full max-h-full">
-          {/* Animated SVG Connections */}
+        <div className="relative w-[1240px] h-[495px] max-w-full max-h-full">
+          {/* Animated Structured SVG Connections */}
           <svg className="absolute inset-0 w-full h-full pointer-events-none z-0">
             <defs>
               <filter id="glow-wire" x="-20%" y="-20%" width="140%" height="140%">
@@ -403,40 +405,71 @@ export const WorkflowPage: React.FC = () => {
               </filter>
             </defs>
 
-            {connections.map((conn, idx) => {
+            {connections.map((conn) => {
               const fromNode = nodes.find((n) => n.id === conn.from)!;
               const toNode = nodes.find((n) => n.id === conn.to)!;
               if (!fromNode || !toNode) return null;
 
               const cardWidth = 195;
-              const cardHeight = 68;
+              const cardHeight = 66;
 
               const startX = fromNode.x + cardWidth;
               const startY = fromNode.y + cardHeight / 2;
               const endX = toNode.x;
               const endY = toNode.y + cardHeight / 2;
 
+              // Clean smooth horizontal bezier routing
               const deltaX = Math.abs(endX - startX) * 0.45;
               const pathD = `M ${startX} ${startY} C ${startX + deltaX} ${startY}, ${endX - deltaX} ${endY}, ${endX} ${endY}`;
 
-              const isActive =
-                (nodeStatuses[fromNode.id] === 'success' || nodeStatuses[fromNode.id] === 'running') &&
-                (nodeStatuses[toNode.id] === 'running' || nodeStatuses[toNode.id] === 'success');
+              const isFromActive = nodeStatuses[fromNode.id] === 'success' || nodeStatuses[fromNode.id] === 'running';
+              const isToActive = nodeStatuses[toNode.id] === 'running' || nodeStatuses[toNode.id] === 'success';
+              const isActive = isFromActive && isToActive;
+
+              const isIncomingSelected = toNode.id === selectedNodeId;
+              const isOutgoingSelected = fromNode.id === selectedNodeId;
+
+              // Color determination:
+              // Outgoing from selected -> vibrant purple glow
+              // Incoming to selected -> bright cyan glow
+              // Active data transmission -> stream baseColor glowing
+              // Idle track -> subdued stream baseColor
+              const strokeColor = isIncomingSelected
+                ? '#38BDF8'
+                : isOutgoingSelected
+                ? '#A855F7'
+                : isActive
+                ? conn.baseColor
+                : conn.baseColor;
+
+              const strokeOpacity = isIncomingSelected || isOutgoingSelected
+                ? 1.0
+                : isActive
+                ? 0.95
+                : 0.28;
+
+              const strokeWidth = isIncomingSelected || isOutgoingSelected
+                ? '2.8'
+                : isActive
+                ? '2.4'
+                : '1.4';
 
               return (
-                <g key={`conn-${idx}`}>
+                <g key={conn.id}>
+                  {/* Clean Wire Path */}
                   <path
                     d={pathD}
                     fill="none"
-                    stroke={isActive ? '#38BDF8' : '#1E293B'}
-                    strokeWidth={isActive ? '2.5' : '1.2'}
-                    strokeDasharray={isActive ? 'none' : '3 3'}
-                    opacity={isActive ? 0.95 : 0.35}
+                    stroke={strokeColor}
+                    strokeWidth={strokeWidth}
+                    strokeDasharray={isActive || isIncomingSelected || isOutgoingSelected ? 'none' : '3 3'}
+                    opacity={strokeOpacity}
                     className="transition-all duration-300"
                   />
 
-                  {isActive && (
-                    <circle r="4" fill="#A855F7" filter="url(#glow-wire)">
+                  {/* Flowing Glowing Particle */}
+                  {(isActive || isRunning) && (
+                    <circle r="4.2" fill={conn.baseColor} filter="url(#glow-wire)">
                       <animateMotion
                         path={pathD}
                         dur={`${1.1 / speedMultiplier}s`}
@@ -449,7 +482,7 @@ export const WorkflowPage: React.FC = () => {
             })}
           </svg>
 
-          {/* Connected Nodes */}
+          {/* Node Cards */}
           {nodes.map((node) => {
             const status = nodeStatuses[node.id] || 'idle';
             const isSelected = selectedNodeId === node.id;
@@ -460,7 +493,7 @@ export const WorkflowPage: React.FC = () => {
                 key={node.id}
                 onClick={() => setSelectedNodeId(node.id)}
                 style={{ left: `${node.x}px`, top: `${node.y}px` }}
-                className={`absolute w-[195px] h-[68px] rounded-xl border transition-all duration-200 cursor-pointer backdrop-blur-xl z-10 flex flex-col justify-between p-2.5 ${
+                className={`absolute w-[195px] h-[66px] rounded-xl border transition-all duration-200 cursor-pointer backdrop-blur-xl z-10 flex flex-col justify-between p-2.5 ${
                   node.isSource
                     ? 'border-cyan-500/30 bg-[#0A1220]/90 hover:border-cyan-400/60'
                     : isSelected
@@ -468,7 +501,7 @@ export const WorkflowPage: React.FC = () => {
                     : 'border-white/[0.08] bg-[#0E131D]/95 hover:border-white/[0.2] hover:bg-[#131A28]'
                 }`}
               >
-                {/* Top Row */}
+                {/* Top Row: Icon + Name + Status */}
                 <div className="flex items-center justify-between gap-1.5">
                   <div className="flex items-center gap-1.5 min-w-0">
                     <div
@@ -493,24 +526,31 @@ export const WorkflowPage: React.FC = () => {
                   )}
                 </div>
 
-                {/* Bottom Row */}
+                {/* Bottom Row: Description + Tag */}
                 <div className="flex items-center justify-between text-[9.5px] text-slate-400 gap-1 mt-1">
                   <span className="truncate flex-1 font-sans text-slate-300">
                     {node.description}
                   </span>
                   <span className="font-mono text-[9px] text-slate-500 shrink-0">
-                    {node.isSource ? 'Data Source' : `~${node.executionTime}ms`}
+                    {node.isSource ? 'Feed' : `~${node.executionTime}ms`}
                   </span>
                 </div>
 
-                {/* Left Port */}
+                {/* Left Incoming Port (Glowing Cyan when selected) */}
                 {!node.isSource && (
-                  <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-[#07090E] border-2 border-slate-500" />
+                  <div
+                    className={`absolute -left-1 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-[#07090E] border-2 transition-colors ${
+                      isSelected ? 'border-cyan-400 shadow-[0_0_8px_rgba(56,189,248,0.8)]' : 'border-slate-500'
+                    }`}
+                  />
                 )}
-                {/* Right Port */}
+
+                {/* Right Outgoing Port (Glowing Purple when selected) */}
                 <div
-                  className="absolute -right-1 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-[#07090E] border-2"
-                  style={{ borderColor: node.color }}
+                  className={`absolute -right-1 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-[#07090E] border-2 transition-colors ${
+                    isSelected ? 'border-purple-400 shadow-[0_0_8px_rgba(168,85,247,0.8)]' : ''
+                  }`}
+                  style={{ borderColor: isSelected ? '#A855F7' : node.color }}
                 />
               </motion.div>
             );
