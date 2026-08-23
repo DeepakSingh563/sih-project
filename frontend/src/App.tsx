@@ -214,43 +214,43 @@ export function App() {
           </AnimatePresence>
         </div>
 
-        {/* Top Right Floating Nav Bar (All 4 Actions Docked) */}
+        {/* Top Right Floating Nav Bar (Light Theme Dock) */}
         <motion.div
           ref={topBarRef}
           initial={{ opacity: 0, y: -12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="pointer-events-auto flex items-center gap-1.5 bg-[#0b0f19]/90 backdrop-blur-xl border border-white/10 p-1.5 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.45)] ring-1 ring-white/5"
+          className="pointer-events-auto flex items-center gap-1.5 bg-white/95 backdrop-blur-xl border border-slate-200 p-1.5 rounded-2xl shadow-google"
         >
           {[
             {
-              icon: <Sparkles className="w-4 h-4 text-purple-300" />,
+              icon: <Sparkles className="w-4 h-4 text-purple-600" />,
               label: 'n8n Workflow ↗',
               onClick: () => window.open('/workflow', '_blank'),
-              cls: 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.35)]',
+              cls: 'bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 shadow-sm font-bold',
             },
             {
-              icon: <Plus className="w-4 h-4 text-blue-300" />,
+              icon: <Plus className="w-4 h-4 text-blue-600" />,
               label: 'Report Hazard',
               onClick: () => setReportModalOpen(true),
-              cls: 'bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 hover:text-white border border-slate-700/60',
+              cls: 'bg-slate-50 hover:bg-slate-100 text-slate-700 hover:text-slate-900 border border-slate-200',
             },
             {
-              icon: <Newspaper className="w-4 h-4 text-amber-300" />,
+              icon: <Newspaper className="w-4 h-4 text-amber-600" />,
               label: 'Crime News',
               onClick: () => setNewsModalOpen(true),
-              cls: 'bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 hover:text-white border border-slate-700/60',
+              cls: 'bg-slate-50 hover:bg-slate-100 text-slate-700 hover:text-slate-900 border border-slate-200',
             },
             {
-              icon: <Cpu className="w-4 h-4 text-emerald-300" />,
+              icon: <Cpu className="w-4 h-4 text-emerald-600" />,
               label: 'AI Console',
               onClick: () => setAdminModalOpen(true),
-              cls: 'bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 hover:text-white border border-slate-700/60',
+              cls: 'bg-slate-50 hover:bg-slate-100 text-slate-700 hover:text-slate-900 border border-slate-200',
             },
           ].map((btn) => (
             <motion.button
               key={btn.label}
               onClick={btn.onClick}
-              whileHover={{ scale: 1.04, y: -1 }}
+              whileHover={{ scale: 1.03, y: -1 }}
               whileTap={{ scale: 0.95 }}
               className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${btn.cls}`}
             >
