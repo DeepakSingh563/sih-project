@@ -1,8 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
-  Play,
-  RotateCcw,
   CheckCircle2,
   Cpu,
   Layers,
@@ -17,7 +15,8 @@ import {
   ArrowRight,
   Globe,
   Smartphone,
-  Database
+  Database,
+  Radio
 } from 'lucide-react';
 
 export type NodeStatus = 'idle' | 'running' | 'success';
@@ -41,10 +40,10 @@ interface Connection {
   to: string;
   type: 'routing' | 'citizen' | 'news' | 'threat_db' | 'decision';
   baseColor: string;
-  label?: string;
 }
 
 export const WorkflowPage: React.FC = () => {
+  // Read active query dynamically from localStorage (set when user hits 'Get Directions' in map)
   const savedQuery = useMemo(() => {
     try {
       const data = localStorage.getItem('safe_route_active_query');
@@ -54,10 +53,10 @@ export const WorkflowPage: React.FC = () => {
   }, []);
 
   const [originName, setOriginName] = useState<string>(
-    savedQuery?.origin?.name || 'Connaught Place'
+    savedQuery?.origin?.name || 'Selected Origin'
   );
   const [destName, setDestName] = useState<string>(
-    savedQuery?.destination?.name || 'Cyber City'
+    savedQuery?.destination?.name || 'Selected Destination'
   );
   const [originCoords, setOriginCoords] = useState<{ lat: number; lng: number }>(
     savedQuery?.origin || { lat: 28.6315, lng: 77.2167 }
@@ -67,19 +66,18 @@ export const WorkflowPage: React.FC = () => {
   );
 
   const [selectedNodeId, setSelectedNodeId] = useState<string>('node-trigger');
-  const [isRunning, setIsRunning] = useState<boolean>(false);
-  const [speedMultiplier, setSpeedMultiplier] = useState<number>(1);
   const [nodeStatuses, setNodeStatuses] = useState<Record<string, NodeStatus>>({});
 
+  // Recalculate distance from actual user coordinates
   const distanceKm = useMemo(() => {
     const dLat = destCoords.lat - originCoords.lat;
     const dLng = destCoords.lng - originCoords.lng;
-    return Math.max(4.2, Math.round(Math.sqrt(dLat * dLat + dLng * dLng) * 111 * 10) / 10);
+    return Math.max(2.5, Math.round(Math.sqrt(dLat * dLat + dLng * dLng) * 111 * 10) / 10);
   }, [originCoords, destCoords]);
 
   // Clean structured 5-Tier layout with aligned horizontal bus channels
   const nodes: WorkflowNode[] = useMemo(() => [
-    // --- COL 1: SOURCES & TRIGGER (x: 25) ---
+    // --- COL 1: SOURCES & USER REQUEST (x: 25) ---
     {
       id: 'api-osm',
       name: 'OSM Road Graph API',
@@ -99,7 +97,7 @@ export const WorkflowPage: React.FC = () => {
       icon: Navigation,
       x: 25,
       y: 165,
-      description: `${originName} ➔ ${destName} (~${distanceKm}km)`,
+      description: `${originName} ➔ ${destName} (${distanceKm} km)`,
       executionTime: 4,
       color: '#60A5FA',
     },
@@ -122,7 +120,7 @@ export const WorkflowPage: React.FC = () => {
       icon: Globe,
       x: 25,
       y: 405,
-      description: 'newsind.org, TOI & PCR feeds',
+      description: 'newsind.org, TOI & PCR alerts',
       executionTime: 35,
       color: '#FBBF24',
       isSource: true,
@@ -136,7 +134,7 @@ export const WorkflowPage: React.FC = () => {
       icon: Layers,
       x: 275,
       y: 75,
-      description: 'Computes candidate trajectory polylines',
+      description: `Computes candidate paths for ${originName.split(',')[0]} ➔ ${destName.split(',')[0]}`,
       executionTime: 38,
       color: '#38BDF8',
     },
@@ -266,30 +264,54 @@ export const WorkflowPage: React.FC = () => {
     'node-alert',
   ];
 
-  const handleReset = () => {
-    setIsRunning(false);
-    setNodeStatuses({});
-  };
+  // Auto-start animated pipeline execution immediately when loaded / when query changes
+  useEffect(() => {
+    let isCancelled = false;
 
-  const runPipeline = async () => {
-    handleReset();
-    setIsRunning(true);
+    const runAutoPipeline = async () => {
+      setNodeStatuses({});
 
-    for (let i = 0; i < executionSequence.length; i++) {
-      const targetId = executionSequence[i];
-      setSelectedNodeId(targetId);
+      for (let i = 0; i < executionSequence.length; i++) {
+        if (isCancelled) return;
+        const targetId = executionSequence[i];
+        setSelectedNodeId(targetId);
 
-      setNodeStatuses((prev) => ({ ...prev, [targetId]: 'running' }));
-      const delay = 480 / speedMultiplier;
-      await new Promise((r) => setTimeout(r, delay));
-      setNodeStatuses((prev) => ({ ...prev, [targetId]: 'success' }));
-    }
+        setNodeStatuses((prev) => ({ ...prev, [targetId]: 'running' }));
+        await new Promise((r) => setTimeout(r, 450));
+        if (isCancelled) return;
+        setNodeStatuses((prev) => ({ ...prev, [targetId]: 'success' }));
+      }
+    };
 
-  };
+    runAutoPipeline();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [originName, destName, originCoords, destCoords]);
+
+  // Keep state in sync if localStorage updates from map
+  useEffect(() => {
+    const handleStorageChange = () => {
+      try {
+        const data = localStorage.getItem('safe_route_active_query');
+        if (data) {
+          const parsed = JSON.parse(data);
+          if (parsed.origin?.name) setOriginName(parsed.origin.name);
+          if (parsed.destination?.name) setDestName(parsed.destination.name);
+          if (parsed.origin) setOriginCoords(parsed.origin);
+          if (parsed.destination) setDestCoords(parsed.destination);
+        }
+      } catch {}
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   return (
     <div className="w-screen h-screen bg-[#07090E] text-slate-200 flex flex-col overflow-hidden font-sans select-none">
-      {/* Sleek Minimal Header Bar */}
+      {/* Sleek Minimal Header Bar (Zero Speed/Reset/Start Buttons) */}
       <header className="h-14 px-6 border-b border-white/[0.08] bg-[#0C1017]/90 backdrop-blur-xl flex items-center justify-between z-30 shrink-0">
         <div className="flex items-center gap-3">
           <a
@@ -302,8 +324,8 @@ export const WorkflowPage: React.FC = () => {
 
           <div className="h-4 w-px bg-white/[0.08]" />
 
-          {/* Editable Origin & Destination Inputs (No hardcoded pre-fed destination) */}
-          <div className="flex items-center gap-2 bg-white/[0.03] border border-white/[0.08] px-3 py-1 rounded-xl text-xs">
+          {/* Dynamic User Input Address Display */}
+          <div className="flex items-center gap-2 bg-white/[0.03] border border-white/[0.08] px-3.5 py-1.5 rounded-xl text-xs">
             <div className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-blue-400 shrink-0" />
               <input
@@ -311,7 +333,7 @@ export const WorkflowPage: React.FC = () => {
                 placeholder="Enter origin location..."
                 value={originName}
                 onChange={(e) => setOriginName(e.target.value)}
-                className="bg-transparent border-none outline-none text-white text-xs font-medium placeholder-slate-500 w-36 sm:w-44 truncate"
+                className="bg-transparent border-none outline-none text-white text-xs font-semibold placeholder-slate-500 w-40 sm:w-52 truncate"
               />
             </div>
             <ArrowRight className="w-3.5 h-3.5 text-slate-500 shrink-0" />
@@ -322,57 +344,27 @@ export const WorkflowPage: React.FC = () => {
                 placeholder="Enter destination..."
                 value={destName}
                 onChange={(e) => setDestName(e.target.value)}
-                className="bg-transparent border-none outline-none text-white text-xs font-medium placeholder-slate-500 w-36 sm:w-44 truncate"
+                className="bg-transparent border-none outline-none text-white text-xs font-semibold placeholder-slate-500 w-40 sm:w-52 truncate"
               />
             </div>
           </div>
         </div>
 
-        {/* Action Controls & Legend */}
-        <div className="flex items-center gap-3">
+        {/* Live Automatic Status Badge & Legend */}
+        <div className="flex items-center gap-4">
           {/* Stream Legend */}
-          <div className="hidden lg:flex items-center gap-2.5 text-[10px] font-mono text-slate-400 border-r border-white/[0.08] pr-3 mr-1">
+          <div className="hidden lg:flex items-center gap-2.5 text-[10px] font-mono text-slate-400 border-r border-white/[0.08] pr-3">
             <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-[#38BDF8]" />Routing</span>
             <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-[#34D399]" />Citizen</span>
             <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-[#FBBF24]" />News AI</span>
             <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-[#E879F9]" />Threat Radar</span>
           </div>
 
-          <div className="flex items-center bg-white/[0.04] p-0.5 rounded-lg border border-white/[0.08] text-xs font-mono">
-            <button
-              onClick={() => setSpeedMultiplier(1)}
-              className={`px-2 py-0.5 rounded text-[10px] ${
-                speedMultiplier === 1 ? 'bg-purple-600 text-white font-bold' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              1x
-            </button>
-            <button
-              onClick={() => setSpeedMultiplier(2)}
-              className={`px-2 py-0.5 rounded text-[10px] ${
-                speedMultiplier === 2 ? 'bg-purple-600 text-white font-bold' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              2x
-            </button>
+          {/* Automatic Live Pulse Status */}
+          <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium font-mono">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span>Agent Pipeline Live & Active</span>
           </div>
-
-          <button
-            onClick={handleReset}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-xs font-medium text-slate-300 transition-colors"
-          >
-            <RotateCcw className="w-3 h-3 text-slate-400" />
-            <span>Reset</span>
-          </button>
-
-          <button
-            disabled={isRunning}
-            onClick={runPipeline}
-            className="flex items-center gap-1.5 px-3.5 py-1 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-xs font-bold text-white shadow-[0_0_15px_rgba(168,85,247,0.35)] transition-all active:scale-95 disabled:opacity-50"
-          >
-            <Play className="w-3 h-3 fill-current" />
-            <span>{isRunning ? 'Pipeline Executing...' : '▶ Simulate Pipeline'}</span>
-          </button>
         </div>
       </header>
 
@@ -404,7 +396,6 @@ export const WorkflowPage: React.FC = () => {
               const endX = toNode.x;
               const endY = toNode.y + cardHeight / 2;
 
-              // Clean smooth horizontal bezier routing
               const deltaX = Math.abs(endX - startX) * 0.45;
               const pathD = `M ${startX} ${startY} C ${startX + deltaX} ${startY}, ${endX - deltaX} ${endY}, ${endX} ${endY}`;
 
@@ -415,11 +406,6 @@ export const WorkflowPage: React.FC = () => {
               const isIncomingSelected = toNode.id === selectedNodeId;
               const isOutgoingSelected = fromNode.id === selectedNodeId;
 
-              // Color determination:
-              // Outgoing from selected -> vibrant purple glow
-              // Incoming to selected -> bright cyan glow
-              // Active data transmission -> stream baseColor glowing
-              // Idle track -> subdued stream baseColor
               const strokeColor = isIncomingSelected
                 ? '#38BDF8'
                 : isOutgoingSelected
@@ -454,15 +440,13 @@ export const WorkflowPage: React.FC = () => {
                   />
 
                   {/* Flowing Glowing Particle */}
-                  {(isActive || isRunning) && (
-                    <circle r="4.2" fill={conn.baseColor} filter="url(#glow-wire)">
-                      <animateMotion
-                        path={pathD}
-                        dur={`${1.1 / speedMultiplier}s`}
-                        repeatCount="indefinite"
-                      />
-                    </circle>
-                  )}
+                  <circle r="4.2" fill={conn.baseColor} filter="url(#glow-wire)">
+                    <animateMotion
+                      path={pathD}
+                      dur="1.3s"
+                      repeatCount="indefinite"
+                    />
+                  </circle>
                 </g>
               );
             })}
@@ -512,7 +496,7 @@ export const WorkflowPage: React.FC = () => {
                   )}
                 </div>
 
-                {/* Bottom Row: Description + Tag */}
+                {/* Bottom Row: Dynamic Description + Tag */}
                 <div className="flex items-center justify-between text-[9.5px] text-slate-400 gap-1 mt-1">
                   <span className="truncate flex-1 font-sans text-slate-300">
                     {node.description}
@@ -522,7 +506,7 @@ export const WorkflowPage: React.FC = () => {
                   </span>
                 </div>
 
-                {/* Left Incoming Port (Glowing Cyan when selected) */}
+                {/* Left Incoming Port */}
                 {!node.isSource && (
                   <div
                     className={`absolute -left-1 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-[#07090E] border-2 transition-colors ${
@@ -531,7 +515,7 @@ export const WorkflowPage: React.FC = () => {
                   />
                 )}
 
-                {/* Right Outgoing Port (Glowing Purple when selected) */}
+                {/* Right Outgoing Port */}
                 <div
                   className={`absolute -right-1 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-[#07090E] border-2 transition-colors ${
                     isSelected ? 'border-purple-400 shadow-[0_0_8px_rgba(168,85,247,0.8)]' : ''

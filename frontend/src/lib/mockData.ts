@@ -1,26 +1,90 @@
 import { Incident, CommunityReport, NewsArticle, AIAgentLog, LatLng, RoutePlanResponse, SeverityLevel, RiskLevel } from '../types';
 
 export const GLOBAL_POPULAR_PLACES: { name: string; lat: number; lng: number; tag: string }[] = [
-  // Delhi NCR (Pilot Region)
-  { name: 'Connaught Place', lat: 28.6315, lng: 77.2167, tag: 'New Delhi' },
-  { name: 'Hauz Khas', lat: 28.5245, lng: 77.1855, tag: 'South Delhi' },
-  { name: 'Cyber City', lat: 28.4500, lng: 77.0400, tag: 'Gurugram' },
-  { name: 'Sector 18', lat: 28.5700, lng: 77.3260, tag: 'Noida' },
-  { name: 'Saket City Centre', lat: 28.5672, lng: 77.2100, tag: 'Delhi' },
-  { name: 'Chandni Chowk', lat: 28.6562, lng: 77.2410, tag: 'Delhi' },
-  { name: 'Indirapuram', lat: 28.6720, lng: 77.4500, tag: 'Ghaziabad' },
-  { name: 'Lajpat Nagar Ring Road', lat: 28.5921, lng: 77.2290, tag: 'Delhi' },
-  { name: 'ITO Junction', lat: 28.6270, lng: 77.2410, tag: 'Delhi' },
-  { name: 'Botanical Garden', lat: 28.5800, lng: 77.3120, tag: 'Noida' },
-  // Major Indian Metros
-  { name: 'Bandra West', lat: 19.0596, lng: 72.8295, tag: 'Mumbai' },
-  { name: 'Koramangala', lat: 12.9352, lng: 77.6245, tag: 'Bengaluru' },
-  { name: 'Hitec City', lat: 17.4435, lng: 78.3772, tag: 'Hyderabad' },
-  // Global Metros
-  { name: 'Times Square', lat: 40.7580, lng: -73.9855, tag: 'New York' },
-  { name: 'Piccadilly Circus', lat: 51.5101, lng: -0.1340, tag: 'London' },
-  { name: 'Shinjuku', lat: 35.6938, lng: 139.7034, tag: 'Tokyo' },
+  // Central & South Delhi
+  { name: 'Connaught Place', lat: 28.6315, lng: 77.2167, tag: 'Central Delhi' },
+  { name: 'India Gate', lat: 28.6129, lng: 77.2295, tag: 'Central Delhi' },
+  { name: 'Hauz Khas Village', lat: 28.5535, lng: 77.1945, tag: 'South Delhi' },
+  { name: 'Saket City Centre', lat: 28.5245, lng: 77.2167, tag: 'South Delhi' },
+  { name: 'Lajpat Nagar', lat: 28.5700, lng: 77.2400, tag: 'South Delhi' },
+  { name: 'Greater Kailash (GK 1/2)', lat: 28.5400, lng: 77.2400, tag: 'South Delhi' },
+  { name: 'Nehru Place', lat: 28.5500, lng: 77.2500, tag: 'South Delhi' },
+  { name: 'Vasant Kunj', lat: 28.5200, lng: 77.1500, tag: 'South Delhi' },
+  { name: 'Aerocity', lat: 28.5500, lng: 77.1200, tag: 'South Delhi' },
+  { name: 'South Extension', lat: 28.5700, lng: 77.2200, tag: 'South Delhi' },
+  { name: 'Malviya Nagar', lat: 28.5300, lng: 77.2100, tag: 'South Delhi' },
+  { name: 'Green Park', lat: 28.5600, lng: 77.2000, tag: 'South Delhi' },
+  { name: 'Sarita Vihar', lat: 28.5300, lng: 77.3000, tag: 'South Delhi' },
+
+  // West & North Delhi
+  { name: 'Karol Bagh', lat: 28.6500, lng: 77.1900, tag: 'West Delhi' },
+  { name: 'Rajouri Garden', lat: 28.6500, lng: 77.1200, tag: 'West Delhi' },
+  { name: 'Janakpuri', lat: 28.6200, lng: 77.0800, tag: 'West Delhi' },
+  { name: 'Dwarka Sector 21', lat: 28.5500, lng: 77.0600, tag: 'West Delhi' },
+  { name: 'Dwarka Mor', lat: 28.6200, lng: 77.0300, tag: 'West Delhi' },
+  { name: 'Rohini Sector 18', lat: 28.7300, lng: 77.1300, tag: 'North Delhi' },
+  { name: 'Pitampura', lat: 28.7000, lng: 77.1400, tag: 'North Delhi' },
+  { name: 'Chandni Chowk', lat: 28.6562, lng: 77.2410, tag: 'North Delhi' },
+  { name: 'Civil Lines', lat: 28.6800, lng: 77.2200, tag: 'North Delhi' },
+  { name: 'Delhi University (North Campus)', lat: 28.6900, lng: 77.2100, tag: 'North Delhi' },
+  { name: 'Netaji Subhash Place', lat: 28.6900, lng: 77.1500, tag: 'North Delhi' },
+
+  // East Delhi
+  { name: 'Mayur Vihar Phase 1', lat: 28.6100, lng: 77.2900, tag: 'East Delhi' },
+  { name: 'Laxmi Nagar', lat: 28.6300, lng: 77.2800, tag: 'East Delhi' },
+  { name: 'Anand Vihar ISBT', lat: 28.6500, lng: 77.3100, tag: 'East Delhi' },
+  { name: 'Preet Vihar', lat: 28.6400, lng: 77.2900, tag: 'East Delhi' },
+
+  // Gurugram (NCR)
+  { name: 'DLF Cyber City', lat: 28.4950, lng: 77.0895, tag: 'Gurugram' },
+  { name: 'Golf Course Road', lat: 28.4600, lng: 77.1000, tag: 'Gurugram' },
+  { name: 'MG Road Metro', lat: 28.4800, lng: 77.0800, tag: 'Gurugram' },
+  { name: 'Sohna Road', lat: 28.4000, lng: 77.0400, tag: 'Gurugram' },
+  { name: 'Huda City Centre', lat: 28.4600, lng: 77.0700, tag: 'Gurugram' },
+  { name: 'Udyog Vihar', lat: 28.5100, lng: 77.0800, tag: 'Gurugram' },
+
+  // Noida & Greater Noida (NCR)
+  { name: 'Sector 18 Atta Market', lat: 28.5700, lng: 77.3260, tag: 'Noida' },
+  { name: 'Sector 62 IT Park', lat: 28.6200, lng: 77.3600, tag: 'Noida' },
+  { name: 'Botanical Garden Metro', lat: 28.5600, lng: 77.3300, tag: 'Noida' },
+  { name: 'Sector 137 Metro', lat: 28.5100, lng: 77.4000, tag: 'Noida' },
+  { name: 'Pari Chowk', lat: 28.4700, lng: 77.5000, tag: 'Greater Noida' },
+
+  // Ghaziabad & Faridabad (NCR)
+  { name: 'Indirapuram', lat: 28.6400, lng: 77.3700, tag: 'Ghaziabad' },
+  { name: 'Vaishali Metro', lat: 28.6500, lng: 77.3400, tag: 'Ghaziabad' },
+  { name: 'Raj Nagar Extension', lat: 28.7000, lng: 77.4300, tag: 'Ghaziabad' },
+  { name: 'Faridabad NIT', lat: 28.3900, lng: 77.3100, tag: 'Faridabad' },
+  { name: 'Old Faridabad Metro', lat: 28.4200, lng: 77.3200, tag: 'Faridabad' },
 ];
+
+// Universal location resolver for ANY typed location in Delhi NCR
+export function resolveDelhiLocation(query: string): { name: string; lat: number; lng: number } {
+  if (!query || !query.trim()) {
+    return { name: 'Connaught Place', lat: 28.6315, lng: 77.2167 };
+  }
+  const clean = query.trim();
+  const match = GLOBAL_POPULAR_PLACES.find(
+    (p) => p.name.toLowerCase().includes(clean.toLowerCase()) || clean.toLowerCase().includes(p.name.toLowerCase())
+  );
+  if (match) {
+    return { name: match.name, lat: match.lat, lng: match.lng };
+  }
+
+  // Deterministic hash coordinates within Delhi NCR bounding box (28.4 - 28.7 lat, 77.0 - 77.35 lng)
+  let hash = 0;
+  for (let i = 0; i < clean.length; i++) {
+    hash = (hash << 5) - hash + clean.charCodeAt(i);
+    hash |= 0;
+  }
+  const norm1 = Math.abs(Math.sin(hash)) % 1;
+  const norm2 = Math.abs(Math.cos(hash)) % 1;
+
+  const lat = 28.45 + norm1 * 0.25;
+  const lng = 77.05 + norm2 * 0.30;
+
+  return { name: clean, lat: Math.round(lat * 10000) / 10000, lng: Math.round(lng * 10000) / 10000 };
+}
 
 export const INITIAL_INCIDENTS: Incident[] = [
   {

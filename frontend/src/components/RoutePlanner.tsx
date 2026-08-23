@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { LatLng, RoutePlanResponse } from '../types';
-import { GLOBAL_POPULAR_PLACES } from '../lib/mockData';
+import { GLOBAL_POPULAR_PLACES, resolveDelhiLocation } from '../lib/mockData';
 import { SafetyBadge } from './SafetyBadge';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -210,8 +210,22 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
 
         {/* Action Button */}
         <motion.button
-          onClick={onPlanRoute}
-          disabled={loading || !origin || !destination}
+          onClick={() => {
+            let activeOrig = origin;
+            let activeDest = destination;
+            if (originSearch.trim()) {
+              const res = resolveDelhiLocation(originSearch);
+              activeOrig = { lat: res.lat, lng: res.lng, name: res.name } as any;
+              setOrigin(activeOrig!);
+            }
+            if (destSearch.trim()) {
+              const res = resolveDelhiLocation(destSearch);
+              activeDest = { lat: res.lat, lng: res.lng, name: res.name } as any;
+              setDestination(activeDest!);
+            }
+            onPlanRoute();
+          }}
+          disabled={loading || (!origin && !originSearch.trim()) || (!destination && !destSearch.trim())}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.97 }}
           className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 font-semibold text-xs text-white shadow-sm flex items-center justify-center gap-1.5 transition-colors"
@@ -221,7 +235,7 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
               animate={{ opacity: [0.5, 1, 0.5] }}
               transition={{ duration: 1.2, repeat: Infinity }}
             >
-              Calculating routes...
+              Calculating safest corridors...
             </motion.span>
           ) : (
             <>
