@@ -2,7 +2,7 @@ import React from 'react';
 import { Shield, Sparkles, Plus, Newspaper, AlertOctagon } from 'lucide-react';
 
 interface NavbarProps {
-  onOpenWorkflow: () => void;
+  onOpenWorkflow?: () => void;
   onOpenReport: () => void;
   onOpenNews: () => void;
   onOpenSOS?: () => void;
@@ -10,7 +10,6 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
-  onOpenWorkflow,
   onOpenReport,
   onOpenNews,
   onOpenSOS,
@@ -46,15 +45,17 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Clean Icon-Only Action Buttons (No Text / Logos Only) */}
       <div className="flex items-center gap-2">
-        {/* 1. n8n Workflow Logo Button */}
-        <button
-          onClick={onOpenWorkflow}
-          className="w-9 h-9 rounded-xl bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-700 shadow-sm flex items-center justify-center transition-all hover:scale-105 active:scale-95"
+        {/* 1. n8n Workflow Logo Button (Native Anchor Link: Immune to popup blockers & 404s) */}
+        <a
+          href="?page=workflow"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-9 h-9 rounded-xl bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-700 shadow-sm flex items-center justify-center transition-all hover:scale-105 active:scale-95 cursor-pointer"
           title="Open n8n Agent Workflow (New Tab)"
           aria-label="n8n Agent Workflow"
         >
           <Sparkles className="w-4 h-4 text-purple-600" />
-        </button>
+        </a>
 
         {/* 2. Report Hazard Logo Button */}
         <button
