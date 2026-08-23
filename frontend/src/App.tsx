@@ -214,48 +214,51 @@ export function App() {
           </AnimatePresence>
         </div>
 
-        {/* Top Right Quick Actions */}
-        <div ref={topBarRef} className="pointer-events-auto flex items-center flex-wrap gap-2.5">
+        {/* Top Right Floating Nav Bar (All 4 Actions Docked) */}
+        <motion.div
+          ref={topBarRef}
+          initial={{ opacity: 0, y: -12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="pointer-events-auto flex items-center gap-1.5 bg-[#0b0f19]/90 backdrop-blur-xl border border-white/10 p-1.5 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.45)] ring-1 ring-white/5"
+        >
           {[
             {
-              icon: <Sparkles className="w-5 h-5 text-yellow-300 animate-pulse" />,
+              icon: <Sparkles className="w-4 h-4 text-purple-300" />,
               label: 'n8n Workflow ↗',
               onClick: () => window.open('/workflow', '_blank'),
-              cls: 'bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 hover:from-purple-500 hover:to-indigo-500 text-white border-2 border-purple-400 shadow-[0_0_20px_rgba(168,85,247,0.45)] ring-2 ring-purple-300/30',
+              cls: 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.35)]',
             },
             {
-              icon: <Plus className="w-5 h-5" />,
+              icon: <Plus className="w-4 h-4 text-blue-300" />,
               label: 'Report Hazard',
               onClick: () => setReportModalOpen(true),
-              cls: 'bg-blue-600 hover:bg-blue-500 text-white border-2 border-blue-800',
+              cls: 'bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 hover:text-white border border-slate-700/60',
             },
             {
-              icon: <Newspaper className="w-5 h-5" />,
+              icon: <Newspaper className="w-4 h-4 text-amber-300" />,
               label: 'Crime News',
               onClick: () => setNewsModalOpen(true),
-              cls: 'bg-amber-500 hover:bg-amber-400 text-white border-2 border-amber-700',
+              cls: 'bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 hover:text-white border border-slate-700/60',
             },
             {
-              icon: <Cpu className="w-5 h-5" />,
+              icon: <Cpu className="w-4 h-4 text-emerald-300" />,
               label: 'AI Console',
               onClick: () => setAdminModalOpen(true),
-              cls: 'bg-purple-600 hover:bg-purple-500 text-white border-2 border-purple-800',
+              cls: 'bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 hover:text-white border border-slate-700/60',
             },
           ].map((btn) => (
             <motion.button
               key={btn.label}
               onClick={btn.onClick}
-              whileHover={{ scale: 1.07, y: -2 }}
-              whileTap={{ scale: 0.93 }}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold shadow-xl transition-colors ${btn.cls}`}
-              style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}
+              whileHover={{ scale: 1.04, y: -1 }}
+              whileTap={{ scale: 0.95 }}
+              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${btn.cls}`}
             >
               {btn.icon}
-              <span>{btn.label}</span>
+              <span className="hidden sm:inline">{btn.label}</span>
             </motion.button>
           ))}
-
-        </div>
+        </motion.div>
       </div>
 
       {/* GPS Locate Floating Button */}
