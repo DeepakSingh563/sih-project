@@ -291,7 +291,7 @@ export const MapView: React.FC<MapViewProps> = ({
           </>
         )}
 
-        {/* Render Route Polylines (Google Maps Style) */}
+        {/* Render Route Polylines with Crisp Road Snapping and High Contrast */}
         {routeOptions.map((opt, idx) => {
           const isSelected = selectedRouteIndex === opt.routeIndex;
           const isRecommended = opt.safety.score >= 70;
@@ -299,31 +299,35 @@ export const MapView: React.FC<MapViewProps> = ({
             ([lng, lat]) => [lat, lng]
           );
 
-          // Google Maps colors: Selected route is primary blue (#1a73e8) or safe emerald (#1e8e3e), unselected is grey (#9aa0a6)
-          let lineColor = isSelected ? (isRecommended ? '#1e8e3e' : '#1a73e8') : '#9aa0a6';
-          let lineWeight = isSelected ? 6 : 4;
-          let lineOpacity = isSelected ? 0.95 : 0.6;
+          // Google Maps high-contrast colors
+          const lineColor = isSelected ? (isRecommended ? '#16a34a' : '#2563eb') : '#94a3b8';
+          const lineWeight = isSelected ? 7 : 5;
+          const lineOpacity = isSelected ? 1.0 : 0.65;
 
           return (
             <React.Fragment key={`route-${idx}`}>
-              {/* Outer stroke for clean contrast on maps */}
+              {/* Outer white casing for selected route for crisp separation on map */}
               {isSelected && (
                 <Polyline
                   positions={positions}
                   pathOptions={{
                     color: '#ffffff',
-                    weight: 10,
-                    opacity: 0.9,
+                    weight: 12,
+                    opacity: 0.95,
+                    lineCap: 'round',
+                    lineJoin: 'round',
                   }}
                 />
               )}
-              {/* Main polyline */}
+              {/* Main road polyline */}
               <Polyline
                 positions={positions}
                 pathOptions={{
                   color: lineColor,
                   weight: lineWeight,
                   opacity: lineOpacity,
+                  lineCap: 'round',
+                  lineJoin: 'round',
                 }}
                 eventHandlers={{
                   click: () => onSelectRoute && onSelectRoute(opt.routeIndex),
