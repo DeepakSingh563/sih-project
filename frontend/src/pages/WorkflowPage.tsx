@@ -566,64 +566,6 @@ export const WorkflowPage: React.FC = () => {
             })}
           </div>
         </div>
-
-        {/* Minimal Right Inspector Drawer */}
-        <div className="w-88 border-l border-white/[0.08] bg-[#0C1017] flex flex-col overflow-hidden shrink-0">
-          <div className="p-3.5 border-b border-white/[0.06] flex items-center justify-between bg-white/[0.02]">
-            <div className="flex items-center gap-2">
-              <Terminal className="w-3.5 h-3.5 text-purple-400" />
-              <span className="font-bold text-xs uppercase tracking-wider text-slate-300 font-mono">
-                Node Inspector
-              </span>
-            </div>
-            <span
-              className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold uppercase"
-              style={{ backgroundColor: `${selectedNode.color}20`, color: selectedNode.color }}
-            >
-              {selectedNode.category}
-            </span>
-          </div>
-
-          <div className="flex-1 p-4 overflow-y-auto space-y-4 text-xs">
-            <div>
-              <h3 className="text-sm font-bold text-white">{selectedNode.name}</h3>
-              <p className="text-xs text-slate-400 mt-0.5">{selectedNode.description}</p>
-            </div>
-
-            {/* Core Algorithm / Rules */}
-            <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-              <span className="text-[10px] font-mono uppercase text-purple-400 font-bold block mb-1">
-                Algorithm & Logic
-              </span>
-              <p className="text-xs text-slate-300 leading-relaxed">{selectedNode.logicInfo}</p>
-            </div>
-
-            {/* Inputs */}
-            <div>
-              <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider block mb-1">
-                📥 Input Parameters
-              </span>
-              <pre className="p-3 rounded-xl bg-black/40 border border-white/[0.06] text-[11px] font-mono text-emerald-300 overflow-x-auto">
-                {JSON.stringify(selectedNode.inputs, null, 2)}
-              </pre>
-            </div>
-
-            {/* Outputs */}
-            <div>
-              <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider block mb-1">
-                📤 Output Payload
-              </span>
-              <pre className="p-3 rounded-xl bg-black/40 border border-white/[0.06] text-[11px] font-mono text-blue-300 overflow-x-auto">
-                {JSON.stringify(selectedNode.outputs, null, 2)}
-              </pre>
-            </div>
-          </div>
-
-          <div className="p-3 border-t border-white/[0.06] bg-black/20 flex items-center justify-between text-[11px] text-slate-400 font-mono">
-            <span>Status: <b className="text-white">{selectedNode.status.toUpperCase()}</b></span>
-            <span>Latency: ~{selectedNode.executionTime}ms</span>
-          </div>
-        </div>
       </div>
     </div>
   );
