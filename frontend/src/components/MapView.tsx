@@ -112,6 +112,50 @@ const createGoogleUserNavIcon = () =>
     iconAnchor: [18, 18],
   });
 
+const createPoiSymbolIcon = (type: 'petrol_pump' | 'toll_plaza' | 'hospital' | 'police_post') => {
+  let bg = '#0284c7';
+  let symbol = '⛽';
+  let shadow = 'rgba(2, 132, 199, 0.4)';
+
+  if (type === 'toll_plaza') {
+    bg = '#7c3aed';
+    symbol = '🛑';
+    shadow = 'rgba(124, 58, 237, 0.4)';
+  } else if (type === 'hospital') {
+    bg = '#dc2626';
+    symbol = '🏥';
+    shadow = 'rgba(220, 38, 38, 0.4)';
+  } else if (type === 'police_post') {
+    bg = '#1e3a8a';
+    symbol = '🚓';
+    shadow = 'rgba(30, 58, 138, 0.4)';
+  }
+
+  return L.divIcon({
+    className: `poi-symbol-${type}`,
+    html: `
+      <div style="
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: ${bg};
+        border: 2px solid #ffffff;
+        box-shadow: 0 2px 8px ${shadow};
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        line-height: 1;
+        cursor: pointer;
+      ">
+        ${symbol}
+      </div>
+    `,
+    iconSize: [26, 26],
+    iconAnchor: [13, 13],
+  });
+};
+
 interface MapControllerProps {
   origin: LatLng | null;
   destination: LatLng | null;
@@ -299,6 +343,32 @@ export const MapView: React.FC<MapViewProps> = ({
             </React.Fragment>
           );
         })}
+
+        {/* Emergency & Highway Service POI Symbols along Selected Route */}
+        {routeOptions.find((r) => r.routeIndex === selectedRouteIndex)?.pois?.map((poi) => (
+          <Marker
+            key={poi.id}
+            position={[poi.latitude, poi.longitude]}
+            icon={createPoiSymbolIcon(poi.type)}
+          >
+            <Popup>
+              <div className="p-1 max-w-[200px] text-xs">
+                <div className="font-bold text-slate-900 flex items-center gap-1.5">
+                  <span>
+                    {poi.type === 'petrol_pump'
+                      ? '⛽ 24x7 Petrol Pump'
+                      : poi.type === 'toll_plaza'
+                      ? '🛑 Fastag Toll Plaza'
+                      : poi.type === 'hospital'
+                      ? '🏥 Emergency Hospital'
+                      : '🚓 Police PCR Assistance'}
+                  </span>
+                </div>
+                <div className="text-[11px] text-slate-500 mt-0.5">{poi.name}</div>
+              </div>
+            </Popup>
+          </Marker>
+        ))}
 
         {/* Incident Markers */}
         {filteredIncidents.map((inc) => (

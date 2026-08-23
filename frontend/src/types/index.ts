@@ -62,6 +62,14 @@ export interface SafetyScoreResult {
   timeOfDayMultiplier: number;
 }
 
+export interface RoutePOI {
+  id: string;
+  type: 'petrol_pump' | 'toll_plaza' | 'hospital' | 'police_post';
+  name: string;
+  latitude: number;
+  longitude: number;
+}
+
 export interface RouteOption {
   routeIndex: number;
   distanceMeters: number;
@@ -71,6 +79,8 @@ export interface RouteOption {
     type: 'LineString';
     coordinates: [number, number][]; // [lng, lat]
   };
+  name?: string;
+  pois?: RoutePOI[];
   isFallback?: boolean;
 }
 
@@ -83,6 +93,7 @@ export interface RoutePlanResponse {
   recommendedIndex: number;
   reason: string;
   tradeoff: string;
+  pois?: RoutePOI[];
   demoFallbackUsed: boolean;
 }
 
