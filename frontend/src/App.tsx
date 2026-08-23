@@ -10,6 +10,7 @@ import { ReportModal } from './components/ReportModal';
 import { SOSModal, EMERGENCY_PHONE_DISPLAY } from './components/SOSModal';
 import { NewsFeed } from './components/NewsFeed';
 import { AdminDashboard } from './components/AdminDashboard';
+import { SensitiveZonesPanel } from './components/SensitiveZonesPanel';
 import { motion, AnimatePresence } from 'framer-motion';
 import { gsap } from 'gsap';
 import {
@@ -200,6 +201,13 @@ export function App() {
             </AnimatePresence>
           </div>
         </div>
+
+        {/* Floating Sensitive Threat Zones Advisory Panel (Right Side) */}
+        <SensitiveZonesPanel
+          onSelectZone={(coords) => {
+            setUserNavPos(coords);
+          }}
+        />
       </div>
 
       {/* GPS Locate Floating Button */}
