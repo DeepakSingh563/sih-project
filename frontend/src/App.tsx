@@ -29,8 +29,8 @@ export function App() {
   const [newsModalOpen, setNewsModalOpen] = useState<boolean>(false);
   const [adminModalOpen, setAdminModalOpen] = useState<boolean>(false);
 
-  const [origin, setOrigin] = useState<LatLng | null>({ lat: 28.6315, lng: 77.2167 });
-  const [destination, setDestination] = useState<LatLng | null>({ lat: 28.5245, lng: 77.1855 });
+  const [origin, setOrigin] = useState<LatLng | null>(null);
+  const [destination, setDestination] = useState<LatLng | null>(null);
   const [routePlan, setRoutePlan] = useState<RoutePlanResponse | null>(null);
   const [selectedRouteIndex, setSelectedRouteIndex] = useState<number>(0);
   const [userNavPos, setUserNavPos] = useState<LatLng | null>(null);
