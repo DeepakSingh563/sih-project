@@ -17,6 +17,8 @@ import {
   Newspaper,
   Cpu,
   Crosshair,
+  Sparkles,
+  ExternalLink,
 } from 'lucide-react';
 
 export function App() {
@@ -206,6 +208,12 @@ export function App() {
         {/* Top Right Quick Actions */}
         <div ref={topBarRef} className="pointer-events-auto flex items-center flex-wrap gap-2.5">
           {[
+            {
+              icon: <Sparkles className="w-5 h-5 text-yellow-300 animate-pulse" />,
+              label: 'n8n Workflow ↗',
+              onClick: () => window.open('/workflow', '_blank'),
+              cls: 'bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 hover:from-purple-500 hover:to-indigo-500 text-white border-2 border-purple-400 shadow-[0_0_20px_rgba(168,85,247,0.45)] ring-2 ring-purple-300/30',
+            },
             {
               icon: <Plus className="w-5 h-5" />,
               label: 'Report Hazard',
