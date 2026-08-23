@@ -314,13 +314,16 @@ export const WorkflowPage: React.FC = () => {
       {/* Sleek Minimal Header Bar (Zero Speed/Reset/Start Buttons) */}
       <header className="h-14 px-6 border-b border-white/[0.08] bg-[#0C1017]/90 backdrop-blur-xl flex items-center justify-between z-30 shrink-0">
         <div className="flex items-center gap-3">
-          <a
-            href="/"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.1] text-xs font-medium text-slate-300 transition-all hover:text-white"
+          <button
+            onClick={() => {
+              const target = window.location.origin + window.location.pathname.replace(/\/workflow$/, '').replace(/\/$/, '') || '/';
+              window.location.href = target;
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.1] text-xs font-medium text-slate-300 transition-all hover:text-white cursor-pointer"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Map</span>
-          </a>
+          </button>
 
           <div className="h-4 w-px bg-white/[0.08]" />
 

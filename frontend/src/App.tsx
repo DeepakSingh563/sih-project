@@ -141,7 +141,10 @@ export function App() {
     <div className="relative w-screen h-screen overflow-hidden bg-slate-100 font-sans flex flex-col">
       {/* Top Modern Light-Themed Navbar with Logo & Icon Buttons */}
       <Navbar
-        onOpenWorkflow={() => window.open('/workflow', '_blank')}
+        onOpenWorkflow={() => {
+          const baseUrl = window.location.origin + window.location.pathname.replace(/\/$/, '');
+          window.open(`${baseUrl}?page=workflow`, '_blank');
+        }}
         onOpenReport={() => setReportModalOpen(true)}
         onOpenNews={() => setNewsModalOpen(true)}
         onOpenSOS={() => setSosModalOpen(true)}
